@@ -1,0 +1,1274 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SPP Package Planner (Demo) — Project → Packages</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --panel:#0f1a31;
+      --text:#e8eefc;
+      --muted:#aab6d6;
+      --border:rgba(232,238,252,.14);
+      --accent:#6ea8ff;
+      --ok:#4ade80;
+      --warn:#fbbf24;
+      --bad:#fb7185;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius:18px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:var(--sans);
+      color:var(--text);
+      background: radial-gradient(1200px 600px at 15% 10%, rgba(110,168,255,.18), transparent 55%),
+                  radial-gradient(1000px 600px at 80% 0%, rgba(74,222,128,.10), transparent 55%),
+                  radial-gradient(800px 500px at 80% 80%, rgba(251,113,133,.10), transparent 55%),
+                  var(--bg);
+      min-height:100vh;
+    }
+    header{
+      padding:26px 18px 12px;
+      max-width:1200px;
+      margin:0 auto;
+    }
+    h1{
+      margin:0 0 8px;
+      font-size:20px;
+      letter-spacing:.2px;
+      font-weight:800;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .pill{
+      font-size:12px;
+      padding:5px 10px;
+      border:1px solid var(--border);
+      border-radius:999px;
+      color:var(--muted);
+      background: rgba(255,255,255,.03);
+      white-space:nowrap;
+    }
+    .sub{
+      margin:0;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.45;
+      max-width: 980px;
+    }
+    .wrap{
+      max-width:1200px;
+      margin:0 auto;
+      padding:12px 18px 34px;
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:14px;
+    }
+    @media (max-width: 980px){
+      .wrap{grid-template-columns:1fr}
+    }
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.02));
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    .card .hd{
+      padding:14px 16px;
+      border-bottom:1px solid var(--border);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      background: rgba(255,255,255,.02);
+      flex-wrap:wrap;
+    }
+    .card .hd .title{
+      font-weight:760;
+      font-size:14px;
+      letter-spacing:.2px;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .card .bd{ padding:14px 16px 16px; }
+    .row{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .btn{
+      appearance:none;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.04);
+      color:var(--text);
+      padding:9px 12px;
+      border-radius:12px;
+      cursor:pointer;
+      font-weight:700;
+      font-size:13px;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+    }
+    .btn:hover{background: rgba(255,255,255,.07)}
+    .btn.primary{
+      border-color: rgba(110,168,255,.35);
+      background: rgba(110,168,255,.12);
+    }
+    .btn.danger{
+      border-color: rgba(251,113,133,.35);
+      background: rgba(251,113,133,.10);
+    }
+    .btn.small{
+      padding:7px 10px;
+      font-size:12px;
+      border-radius:10px;
+    }
+    label{
+      display:block;
+      font-size:12px;
+      color:var(--muted);
+      margin-bottom:6px;
+    }
+    input, select, textarea{
+      width:100%;
+      padding:10px 10px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      background: rgba(16,31,61,.55);
+      color:var(--text);
+      outline:none;
+      font-size:13px;
+    }
+    input[type="number"]{font-family:var(--mono)}
+    .muted{color:var(--muted)}
+    .mono{font-family:var(--mono)}
+    .right{text-align:right}
+    .grid2{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+    .grid3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px}
+    @media (max-width: 680px){
+      .grid2,.grid3{grid-template-columns:1fr}
+    }
+
+    /* Tabs */
+    .tabs{display:flex; gap:8px; flex-wrap:wrap}
+    .tab{
+      padding:8px 10px;
+      border:1px solid var(--border);
+      border-radius:999px;
+      cursor:pointer;
+      background: rgba(255,255,255,.02);
+      color:var(--muted);
+      font-weight:760;
+      font-size:12.5px;
+      user-select:none;
+    }
+    .tab.active{
+      color:var(--text);
+      border-color: rgba(110,168,255,.35);
+      background: rgba(110,168,255,.10);
+    }
+
+    /* Menu cards */
+    .menuGrid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:10px;
+    }
+    @media (min-width: 620px){
+      .menuGrid{grid-template-columns: 1fr 1fr}
+    }
+    .menuItem{
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:12px 12px;
+      background: rgba(16,31,61,.35);
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      min-height: 142px;
+    }
+    .menuTop{display:flex; justify-content:space-between; gap:10px; align-items:flex-start}
+    .menuName{font-weight:840; font-size:13.5px; letter-spacing:.2px; line-height:1.2}
+    .menuDesc{font-size:12px; color:var(--muted); line-height:1.4}
+    .badges{display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end}
+    .badge{
+      font-size:11px;
+      padding:4px 8px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.02);
+      color:var(--muted);
+      white-space:nowrap;
+    }
+    .badge strong{color:var(--text)}
+
+    /* Projects */
+    .projChips{display:flex; gap:8px; flex-wrap:wrap}
+    .chip{
+      padding:7px 10px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.02);
+      cursor:pointer;
+      font-weight:740;
+      font-size:12.5px;
+      color:var(--muted);
+      display:flex;
+      align-items:center;
+      gap:8px;
+      max-width: 100%;
+    }
+    .chip.active{
+      color:var(--text);
+      border-color: rgba(110,168,255,.35);
+      background: rgba(110,168,255,.10);
+    }
+    .chip .x{
+      font-weight:900;
+      color: rgba(251,113,133,.95);
+      margin-left:2px;
+      cursor:pointer;
+      user-select:none;
+    }
+    .chip .x:hover{filter:brightness(1.1)}
+
+    /* KPI */
+    .kpi{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+    }
+    .kpi .box{
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:12px 12px;
+      background: rgba(255,255,255,.02);
+    }
+    .kpi .box .lbl{color:var(--muted); font-size:12px; margin-bottom:4px}
+    .kpi .box .val{font-family:var(--mono); font-size:16px; font-weight:860; letter-spacing:.2px}
+    .kpi .box .hint{color:var(--muted); font-size:11px; margin-top:6px; line-height:1.35}
+
+    /* Plan table */
+    table{
+      width:100%;
+      border-collapse:separate;
+      border-spacing:0;
+      overflow:hidden;
+      border:1px solid var(--border);
+      border-radius:14px;
+      background: rgba(255,255,255,.015);
+    }
+    th, td{
+      padding:10px 10px;
+      text-align:left;
+      border-bottom:1px solid var(--border);
+      vertical-align:top;
+      font-size:12.5px;
+    }
+    th{
+      font-size:11.5px;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      color:var(--muted);
+      background: rgba(255,255,255,.02);
+    }
+    tr:last-child td{border-bottom:none}
+
+    details{border:1px solid var(--border); border-radius:14px; overflow:hidden; background: rgba(255,255,255,.015)}
+    details + details{margin-top:10px}
+    summary{
+      cursor:pointer;
+      padding:12px 12px;
+      list-style:none;
+      font-weight:800;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      background: rgba(255,255,255,.02);
+    }
+    summary::-webkit-details-marker{display:none}
+    .section{padding:10px 12px 12px}
+
+    .status{
+      font-size:12.5px;
+      color:var(--muted);
+      line-height:1.4;
+    }
+    .status b{color:var(--text)}
+    .ok{color:var(--ok)}
+    .warn{color:var(--warn)}
+    .bad{color:var(--bad)}
+
+    .footerNote{
+      color:var(--muted);
+      font-size:11.5px;
+      line-height:1.45;
+      margin-top:10px;
+    }
+
+    .progressWrap{
+      margin-top:10px;
+      border:1px solid var(--border);
+      border-radius:999px;
+      overflow:hidden;
+      background: rgba(255,255,255,.02);
+      height: 10px;
+    }
+    .progressBar{
+      height: 100%;
+      width: 0%;
+      background: rgba(110,168,255,.55);
+    }
+
+    .toast{
+      position:fixed;
+      bottom:16px;
+      left:50%;
+      transform:translateX(-50%);
+      background: rgba(15,26,49,.95);
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:10px 12px;
+      box-shadow:var(--shadow);
+      color:var(--text);
+      font-size:12.5px;
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .2s ease;
+      max-width: 92vw;
+      z-index: 999;
+    }
+    .toast.show{opacity:1}
+    .shake{animation: shake .28s linear 1;}
+    @keyframes shake{
+      0%{transform:translateX(0)}
+      25%{transform:translateX(-3px)}
+      50%{transform:translateX(3px)}
+      75%{transform:translateX(-2px)}
+      100%{transform:translateX(0)}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>
+      SPP Package Planner (Demo)
+      <span class="pill">Step 1: Create a project → Step 2: Add package items</span>
+    </h1>
+    <p class="sub">
+      Demo concept: members build their SPP plan by selecting standard APO packages (Study, Pilot, Workshop, Research, Masterplan, System Development), instead of micro-counting RPs and participants. Packages are planning units (APO procures/pays actuals). If actual costs exceed a package ceiling, the planning assumption is host-side shares the difference or scope adjusts. The system auto-calculates points and indicative APO contribution
+      (default: 1 point ≈ USD 3,000; 150 points over 3 years). Safeguard logic: packages are planning units (APO pays actuals through procurement). If actual cost exceeds a package ceiling, demo assumes host-side covers the difference or scope adjusts.
+    </p>
+  </header>
+
+  <main class="wrap">
+    <!-- LEFT: MENU -->
+    <section class="card">
+      <div class="hd">
+        <div class="title">
+          Package Menu
+          <span class="pill" id="pkgCountPill">0 items</span>
+        </div>
+        <div class="tabs" id="tabs"></div>
+      </div>
+      <div class="bd">
+        <div class="grid3">
+          <div>
+            <label>Default year for new items</label>
+            <select id="defaultYear">
+              <option value="2026">2026</option>
+              <option value="2027">2027</option>
+              <option value="2028">2028</option>
+            </select>
+          </div>
+          <div>
+            <label>Default quantity</label>
+            <input type="number" id="defaultQty" min="1" step="1" value="1" class="mono" />
+          </div>
+          <div>
+            <label>Active project</label>
+            <input id="activeProjectName" value="" disabled />
+          </div>
+        </div>
+        <div style="height:10px"></div>
+        <div class="menuGrid" id="menuGrid"></div>
+        <div class="footerNote">
+          Click a menu item → “Add to project”. If no project exists, create the project first (right side).
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT: PROJECTS + PLAN + SUMMARY -->
+    <section class="card">
+      <div class="hd">
+        <div class="title">Projects & Plan Builder, Example for a country Bangladesh</div>
+        <div class="row">
+          <button class="btn" id="btnSeed">Seed example</button>
+          <button class="btn danger" id="btnClear">Clear all</button>
+        </div>
+      </div>
+
+      <div class="bd">
+        <div class="grid2">
+          <div>
+            <label>Member points (3-year total)</label>
+            <input type="number" id="memberPoints" min="0" step="1" value="150" class="mono" />
+          </div>
+          <div>
+            <label>Value per point (USD)</label>
+            <input type="number" id="pointValue" min="0" step="100" value="3000" class="mono" />
+          </div>
+        </div>
+
+        <div class="progressWrap" title="Points used vs allocation">
+          <div class="progressBar" id="prog"></div>
+        </div>
+        <div style="height:10px"></div>
+        <div class="status" id="statusLine"></div>
+
+        <div style="height:12px"></div>
+
+        <details open>
+          <summary>
+            <span>Step 1 — Create / select a project</span>
+            <span class="pill" id="projCount">0 projects</span>
+          </summary>
+          <div class="section">
+            <div class="grid2">
+              <div>
+                <label>New project title</label>
+                <input id="newProjectTitle" placeholder="e.g., AI adoption for SMEs" />
+              </div>
+              <div style="display:flex; flex-direction:column; justify-content:end">
+                <button class="btn primary" id="btnAddProject">＋ Add project</button>
+              </div>
+            </div>
+
+            <div style="height:10px"></div>
+
+            <label>Project list (click to activate)</label>
+            <div class="projChips" id="projChips"></div>
+
+            <div style="height:12px"></div>
+
+            <div class="grid2">
+              <div>
+                <label>Active project title (editable)</label>
+                <input id="editProjectTitle" disabled />
+                <div class="footerNote">This title will group package items and totals.</div>
+              </div>
+              <div>
+                <label>Quick action</label>
+                <button class="btn" id="btnAddBlank">＋ Add a blank item (custom)</button>
+                <div class="footerNote">Use custom for edge cases or alternative assumptions.</div>
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <details open>
+          <summary>
+            <span>Step 2 — Add package items to the active project</span>
+            <span class="pill" id="itemCount">0 items</span>
+          </summary>
+          <div class="section">
+            <div class="muted" id="noProjectMsg" style="font-size:12.5px; display:none">
+              Create a project first (above). Then use the Package Menu (left) to add items.
+            </div>
+
+            <div id="planWrap" style="display:none">
+              <div style="overflow:auto">
+                <table>
+                  <thead>
+                    <tr>
+                      <th style="min-width:90px">Year</th>
+                      <th style="min-width:220px">Package / unit</th>
+                      <th class="right" style="min-width:70px">Qty</th>
+                      <th class="right" style="min-width:130px">USD</th>
+                      <th class="right" style="min-width:90px">Points</th>
+                      <th style="min-width:200px">Notes</th>
+                      <th style="min-width:90px">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="planBody"></tbody>
+                </table>
+              </div>
+              <div class="footerNote">
+                Multi-year is handled by adding items with different years under the same project.
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <details>
+          <summary>
+            <span>Summary</span>
+            <span class="pill">auto</span>
+          </summary>
+          <div class="section">
+            <div class="kpi">
+              <div class="box">
+                <div class="lbl">Total Points Used (all projects)</div>
+                <div class="val" id="kpiPoints">0</div>
+                <div class="hint">Against member allocation</div>
+              </div>
+              <div class="box">
+                <div class="lbl">Indicative APO Contribution</div>
+                <div class="val" id="kpiUSD">$0</div>
+                <div class="hint">Sum of selected package ceilings</div>
+              </div>
+              <div class="box">
+                <div class="lbl">Points Remaining</div>
+                <div class="val" id="kpiRemain">150</div>
+                <div class="hint">Warnings if negative</div>
+              </div>
+              <div class="box">
+                <div class="lbl">USD Equivalent (points × value)</div>
+                <div class="val" id="kpiEq">$0</div>
+                <div class="hint">Indicative alignment</div>
+              </div>
+            </div>
+
+            <div style="height:12px"></div>
+
+            <details open>
+              <summary>
+                <span>Totals by year</span>
+                <span class="pill">all projects</span>
+              </summary>
+              <div class="section">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Year</th>
+                      <th class="right">USD</th>
+                      <th class="right">Points</th>
+                    </tr>
+                  </thead>
+                  <tbody id="byYear"></tbody>
+                </table>
+              </div>
+            </details>
+
+            <details>
+              <summary>
+                <span>Totals by project</span>
+                <span class="pill">all projects</span>
+              </summary>
+              <div class="section" id="byProject"></div>
+            </details>
+
+            <details>
+              <summary>
+                <span>Export</span>
+                <span class="pill">CSV / JSON</span>
+              </summary>
+              <div class="section">
+                <div class="row">
+                  <button class="btn small" id="btnExport">Export JSON</button>
+                  <button class="btn small" id="btnCSV">Export CSV</button>
+                </div>
+                <div class="footerNote">
+                  Exports are for sharing the demo plan (not financial processing).
+                </div>
+              </div>
+            </details>
+
+          </div>
+        </details>
+
+      </div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+(() => {
+  const packages = [
+    { key:"study_short", label:"Short Study Package", usd:18000, points:6,
+      desc:"1 international RP (prep + ~5 days in-country), simple data collection, 1 validation meeting, short report." },
+    { key:"pilot_sector", label:"Sector Pilot Package", usd:30000, points:10,
+      desc:"1 international RP + 1 local RP; design one pilot; 1 three-day workshop (~25–30); limited follow-up (2–3 online)." },
+    { key:"workshop", label:"Workshop Package (WSP)", usd:4000, points:1.5,
+      desc:"2–3 day workshop/training (~20–30), 1 RP (intl or local), venue & materials.", note:"Default points=1.5 (range 1–2)" },
+    { key:"tes", label:"Technical Assistance Package (TES)", usd:30000, points:10,
+      desc:"1 local/regional expert mission (~3–5 days) for advisory support or coaching." },
+    { key:"training_trc", label:"Training Package (TRC)", usd:6000, points:2,
+      desc:"Online course or learning pathway (e.g., 30–50 people) with basic facilitation/orientation." },
+    { key:"research_res", label:"Research Package (RES)", usd:36000, points:12,
+      desc:"6–12 months; multi-phase research; report; online coordination meeting, etc." },
+    { key:"masterplan", label:"Masterplan Package", usd:45000, points:15,
+      desc:"9–15 months; policy framework/masterplan; 2 missions; consultations." },
+    { key:"sys_dev", label:"System Development Package (SYS)", usd:60000, points:20,
+      desc:"6–12 months; requirements, system design, prototype/MVP, testing; 1–2 missions; handover & training. (Maintenance excluded)." }
+  ];
+
+  const TABS = [
+    { key:"in", label:"In-activities (Packages)" },
+    { key:"out", label:"Out-activities" },
+    { key:"custom", label:"Custom / Edge cases" }
+  ];
+
+  const state = {
+    activeTab:"in",
+    activeProjectId:null,
+    projects:[],
+    items:[]
+  };
+
+  const $ = (id) => document.getElementById(id);
+  const money = (n) => Number(n||0).toLocaleString(undefined, { style:"currency", currency:"USD", maximumFractionDigits:0 });
+  const num = (n, d=2) => Number(n||0).toLocaleString(undefined, { maximumFractionDigits:d });
+  const uid = () => Math.random().toString(16).slice(2) + Date.now().toString(16);
+
+  function toast(msg){
+    const t=$("toast");
+    t.textContent=msg;
+    t.classList.add("show");
+    setTimeout(()=>t.classList.remove("show"),1600);
+  }
+
+  function getSettings(){
+    return {
+      memberPoints:Number($("memberPoints").value||0),
+      pointValue:Number($("pointValue").value||0),
+      defaultYear:String($("defaultYear").value||"2026"),
+      defaultQty:Number($("defaultQty").value||1)
+    };
+  }
+
+  function pkgByKey(k){ return packages.find(p=>p.key===k); }
+  function activeProject(){ return state.projects.find(p=>p.id===state.activeProjectId)||null; }
+
+  function computeItem(it,s){
+    const qty=Number(it.qty||0);
+    let usd=0, pts=0;
+    if(it.kind==="pkg"){
+      const p=pkgByKey(it.pkgKey);
+      if(p){ usd=qty*p.usd; pts=qty*p.points; }
+    }else if(it.kind==="out_participant"||it.kind==="out_delegation"){
+      pts=qty*1;
+      usd=pts*s.pointValue;
+    }else if(it.kind==="custom"){
+      usd=qty*Number(it.customUSD||0);
+      pts=qty*Number(it.customPoints||0);
+    }
+    return {usd,pts};
+  }
+
+  function ensureProjectSelected(){
+    if(state.projects.length===0||!state.activeProjectId){
+      $("newProjectTitle").focus();
+      $("newProjectTitle").classList.add("shake");
+      setTimeout(()=>$("newProjectTitle").classList.remove("shake"),260);
+      toast("Create/select a project first.");
+      return false;
+    }
+    return true;
+  }
+
+  const LS_KEY="spp_pkg_planner_demo_v3";
+  function persist(){
+    const payload={
+      activeTab:state.activeTab,
+      activeProjectId:state.activeProjectId,
+      projects:state.projects,
+      items:state.items,
+      ui:{ defaultYear:$("defaultYear").value, defaultQty:$("defaultQty").value },
+      settings:{ memberPoints:$("memberPoints").value, pointValue:$("pointValue").value }
+    };
+    localStorage.setItem(LS_KEY, JSON.stringify(payload));
+  }
+  function restore(){
+    try{
+      const raw=localStorage.getItem(LS_KEY);
+      if(!raw) return;
+      const p=JSON.parse(raw);
+      state.activeTab=p.activeTab??"in";
+      state.projects=Array.isArray(p.projects)?p.projects:[];
+      state.items=Array.isArray(p.items)?p.items:[];
+      state.activeProjectId=p.activeProjectId ?? (state.projects[0]?.id ?? null);
+      if(p?.ui?.defaultYear) $("defaultYear").value=p.ui.defaultYear;
+      if(p?.ui?.defaultQty) $("defaultQty").value=p.ui.defaultQty;
+      if(p?.settings?.memberPoints) $("memberPoints").value=p.settings.memberPoints;
+      if(p?.settings?.pointValue) $("pointValue").value=p.settings.pointValue;
+    }catch(e){}
+  }
+
+  function renderTabs(){
+    const tabs=$("tabs");
+    tabs.innerHTML="";
+    TABS.forEach(t=>{
+      const b=document.createElement("div");
+      b.className="tab"+(t.key===state.activeTab?" active":"");
+      b.textContent=t.label;
+      b.onclick=()=>{ state.activeTab=t.key; persist(); renderTabs(); renderMenu(); };
+      tabs.appendChild(b);
+    });
+  }
+
+  function renderMenu(){
+    const grid=$("menuGrid");
+    grid.innerHTML="";
+    if(state.activeTab==="in"){
+      packages.forEach(p=>grid.appendChild(menuCardPackage(p)));
+      $("pkgCountPill").textContent=`${packages.length} packages`;
+      return;
+    }
+    if(state.activeTab==="out"){
+      grid.appendChild(menuCardOut("out_participant","Outbound: Participant sent","1 point per participant (USD = points × value/point)."));
+      grid.appendChild(menuCardOut("out_delegation","Outbound: Delegation hosted","1 point per delegation received (USD = points × value/point)."));
+      $("pkgCountPill").textContent="2 items";
+      return;
+    }
+    if(state.activeTab==="custom"){
+      grid.appendChild(menuCardCustom());
+      $("pkgCountPill").textContent="1 item";
+      return;
+    }
+  }
+
+  function menuCardPackage(p){
+    const div=document.createElement("div");
+    div.className="menuItem";
+    div.innerHTML=`
+      <div class="menuTop">
+        <div>
+          <div class="menuName">${p.label}</div>
+          <div class="menuDesc">${p.desc}</div>
+          ${p.note?`<div class="menuDesc"><span class="badge">${p.note}</span></div>`:""}
+        </div>
+        <div class="badges">
+          <span class="badge"><strong>${money(p.usd)}</strong></span>
+          <span class="badge"><strong class="mono">${num(p.points,2)}</strong> pts</span>
+        </div>
+      </div>
+      <div class="row" style="margin-top:auto">
+        <button class="btn primary" style="width:100%; justify-content:center">Add to project</button>
+      </div>
+    `;
+    div.querySelector("button").onclick=()=>{
+      if(!ensureProjectSelected()) return;
+      const s=getSettings();
+      addItem({kind:"pkg", pkgKey:p.key, year:s.defaultYear, qty:s.defaultQty});
+      toast(`Added to project: ${p.label}`);
+    };
+    return div;
+  }
+
+  function menuCardOut(kind,title,desc){
+    const div=document.createElement("div");
+    div.className="menuItem";
+    div.innerHTML=`
+      <div class="menuTop">
+        <div>
+          <div class="menuName">${title}</div>
+          <div class="menuDesc">${desc}</div>
+        </div>
+        <div class="badges">
+          <span class="badge"><strong class="mono">1</strong> pt / unit</span>
+        </div>
+      </div>
+      <div class="row" style="margin-top:auto">
+        <button class="btn primary" style="width:100%; justify-content:center">Add to project</button>
+      </div>
+    `;
+    div.querySelector("button").onclick=()=>{
+      if(!ensureProjectSelected()) return;
+      const s=getSettings();
+      addItem({kind, year:s.defaultYear, qty:s.defaultQty});
+      toast(`Added to project: ${title}`);
+    };
+    return div;
+  }
+
+  function menuCardCustom(){
+    const div=document.createElement("div");
+    div.className="menuItem";
+    div.innerHTML=`
+      <div class="menuTop">
+        <div>
+          <div class="menuName">Custom activity (override USD/points)</div>
+          <div class="menuDesc">Use for edge cases or alternative assumptions (e.g., workshop at 2 points).</div>
+        </div>
+        <div class="badges"><span class="badge">editable</span></div>
+      </div>
+      <div class="row" style="margin-top:auto">
+        <button class="btn primary" style="width:100%; justify-content:center">Add to project</button>
+      </div>
+    `;
+    div.querySelector("button").onclick=()=>{
+      if(!ensureProjectSelected()) return;
+      const s=getSettings();
+      addItem({kind:"custom", year:s.defaultYear, qty:s.defaultQty, customUSD:0, customPoints:0});
+      toast("Added to project: Custom activity");
+    };
+    return div;
+  }
+
+  function addProject(title){
+    const t=String(title||"").trim();
+    if(!t){
+      $("newProjectTitle").focus();
+      $("newProjectTitle").classList.add("shake");
+      setTimeout(()=>$("newProjectTitle").classList.remove("shake"),260);
+      toast("Enter a project title.");
+      return;
+    }
+    const p={id:uid(), title:t};
+    state.projects.push(p);
+    state.activeProjectId=p.id;
+    $("newProjectTitle").value="";
+    persist();
+    renderProjects();
+    renderPlan();
+    renderSummary();
+    toast("Project added.");
+    $("editProjectTitle").focus();
+  }
+
+  function removeProject(id){
+    state.items = state.items.filter(it=>it.projectId!==id);
+    state.projects = state.projects.filter(p=>p.id!==id);
+    if(state.activeProjectId===id){
+      state.activeProjectId = state.projects[0]?.id ?? null;
+    }
+    persist();
+    renderProjects(); renderPlan(); renderSummary();
+  }
+
+  function setActiveProject(id){
+    state.activeProjectId=id;
+    persist();
+    renderProjects(); renderPlan(); renderSummary();
+  }
+
+  function totalsForProject(pid,s){
+    let usd=0, pts=0;
+    state.items.filter(it=>it.projectId===pid).forEach(it=>{
+      const c=computeItem(it,s);
+      usd+=c.usd; pts+=c.pts;
+    });
+    return {usd,pts};
+  }
+
+  function renderProjects(){
+    $("projCount").textContent=`${state.projects.length} projects`;
+    const chips=$("projChips");
+    chips.innerHTML="";
+    const ap=activeProject();
+    $("activeProjectName").value = ap ? ap.title : "(none)";
+    $("editProjectTitle").disabled = !ap;
+    $("editProjectTitle").value = ap ? ap.title : "";
+
+    if(state.projects.length===0){
+      const msg=document.createElement("div");
+      msg.className="muted";
+      msg.style.fontSize="12.5px";
+      msg.textContent="No projects yet. Add a project title above.";
+      chips.appendChild(msg);
+      return;
+    }
+    const s=getSettings();
+    state.projects.forEach(p=>{
+      const tot=totalsForProject(p.id,s);
+      const chip=document.createElement("div");
+      chip.className="chip"+(p.id===state.activeProjectId?" active":"");
+      chip.innerHTML=`
+        <span style="max-width:320px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">${escapeHtml(p.title)}</span>
+        <span class="pill" style="padding:3px 8px; font-size:11px">${num(tot.pts,2)} pts</span>
+        <span class="x" title="Remove project">×</span>
+      `;
+      chip.onclick=(e)=>{
+        if(e.target && e.target.classList.contains("x")){
+          e.stopPropagation();
+          removeProject(p.id);
+          return;
+        }
+        setActiveProject(p.id);
+      };
+      chips.appendChild(chip);
+    });
+  }
+
+  function onEditProjectTitle(v){
+    const ap=activeProject();
+    if(!ap) return;
+    ap.title=v;
+    $("activeProjectName").value = ap.title || "(untitled)";
+    persist();
+    renderProjects();
+    renderSummary();
+  }
+
+  function addItem(seed={}){
+    const ap=activeProject();
+    if(!ap) return;
+    const it={
+      id:uid(),
+      projectId:ap.id,
+      year:seed.year??"2026",
+      kind:seed.kind??"pkg",
+      pkgKey:seed.pkgKey??packages[0].key,
+      qty:seed.qty??1,
+      notes:seed.notes??"",
+      customUSD:seed.customUSD??0,
+      customPoints:seed.customPoints??0
+    };
+    state.items.push(it);
+    persist();
+    renderPlan();
+    renderSummary();
+    renderProjects();
+  }
+
+  function removeItem(id){
+    state.items=state.items.filter(it=>it.id!==id);
+    persist();
+    renderPlan(); renderSummary(); renderProjects();
+  }
+
+  function yearOptions(sel){
+    return ["2026","2027","2028"].map(y=>`<option value="${y}" ${String(sel)===y?"selected":""}>${y}</option>`).join("");
+  }
+
+  function kindCell(it){
+    const kindOptions=`
+      <option value="pkg" ${it.kind==="pkg"?"selected":""}>Package</option>
+      <option value="out_participant" ${it.kind==="out_participant"?"selected":""}>Out: Participant</option>
+      <option value="out_delegation" ${it.kind==="out_delegation"?"selected":""}>Out: Delegation</option>
+      <option value="custom" ${it.kind==="custom"?"selected":""}>Custom</option>
+    `;
+    const pkgOptions=packages.map(p=>`<option value="${p.key}" ${p.key===it.pkgKey?"selected":""}>${p.label}</option>`).join("");
+    let extra="";
+    if(it.kind==="pkg"){
+      const p=pkgByKey(it.pkgKey);
+      extra=`
+        <div class="row" style="margin-top:8px">
+          <select data-id="${it.id}" data-field="pkgKey" style="flex:1">${pkgOptions}</select>
+        </div>
+        <div class="muted" style="font-size:11px; margin-top:6px">Ceiling: <span class="mono">${money(p?.usd||0)}</span> · Points: <span class="mono">${num(p?.points||0,2)}</span></div>
+      `;
+    }else if(it.kind==="custom"){
+      extra=`
+        <div class="grid2" style="margin-top:8px">
+          <div>
+            <label style="margin:0 0 4px">USD/unit</label>
+            <input class="mono" type="number" min="0" step="100" value="${it.customUSD}" data-id="${it.id}" data-field="customUSD" />
+          </div>
+          <div>
+            <label style="margin:0 0 4px">Pts/unit</label>
+            <input class="mono" type="number" min="0" step="0.5" value="${it.customPoints}" data-id="${it.id}" data-field="customPoints" />
+          </div>
+        </div>
+      `;
+    }else{
+      extra=`<div class="muted" style="font-size:11px; margin-top:6px">Rule: 1 point per unit (USD = points × value/point)</div>`;
+    }
+    const sub=itemLabel(it).sub;
+    return `
+      <div>
+        <select data-id="${it.id}" data-field="kind">${kindOptions}</select>
+        ${extra}
+        <div class="muted" style="font-size:11px; margin-top:6px">${escapeHtml(sub)}</div>
+      </div>
+    `;
+  }
+
+  function itemLabel(it){
+    if(it.kind==="pkg"){
+      const p=pkgByKey(it.pkgKey);
+      return {main:p?.label??"Package", sub:p?.desc??""};
+    }
+    if(it.kind==="out_participant") return {main:"Outbound: Participant sent", sub:"1 point per participant"};
+    if(it.kind==="out_delegation") return {main:"Outbound: Delegation hosted", sub:"1 point per delegation received"};
+    return {main:"Custom activity", sub:"Override USD/points for edge cases"};
+  }
+
+  function renderPlan(){
+    const ap=activeProject();
+    const wrap=$("planWrap");
+    const noMsg=$("noProjectMsg");
+    const body=$("planBody");
+
+    if(!ap){
+      $("itemCount").textContent="0 items";
+      wrap.style.display="none";
+      noMsg.style.display="block";
+      body.innerHTML="";
+      return;
+    }
+    noMsg.style.display="none";
+    wrap.style.display="block";
+
+    const s=getSettings();
+    const items=state.items.filter(it=>it.projectId===ap.id);
+    $("itemCount").textContent=`${items.length} items`;
+
+    if(items.length===0){
+      body.innerHTML=`
+        <tr><td colspan="7" class="muted">No package items yet for this project. Use the Package Menu (left) to add one.</td></tr>
+      `;
+      return;
+    }
+
+    body.innerHTML = items.map(it=>{
+      const c=computeItem(it,s);
+      return `
+        <tr>
+          <td><select data-id="${it.id}" data-field="year">${yearOptions(it.year)}</select></td>
+          <td>${kindCell(it)}</td>
+          <td class="right"><input class="mono right" type="number" min="0" step="1" value="${it.qty}" data-id="${it.id}" data-field="qty" /></td>
+          <td class="right mono">${money(c.usd)}</td>
+          <td class="right mono">${num(c.pts,2)}</td>
+          <td><input value="${escapeHtml(it.notes)}" data-id="${it.id}" data-field="notes" placeholder="optional" /></td>
+          <td><button class="btn danger small" data-del="${it.id}">Remove</button></td>
+        </tr>
+      `;
+    }).join("");
+
+    body.querySelectorAll("input, select").forEach(el=>{
+      const id=el.getAttribute("data-id");
+      const field=el.getAttribute("data-field");
+      el.addEventListener("input", ()=>onEditItem(id,field,el.value,false));
+      el.addEventListener("change", ()=>onEditItem(id,field,el.value,true));
+    });
+    body.querySelectorAll("button[data-del]").forEach(btn=>{
+      btn.onclick=()=>removeItem(btn.getAttribute("data-del"));
+    });
+  }
+
+  function onEditItem(id,field,value,isChange){
+    const it=state.items.find(x=>x.id===id);
+    if(!it) return;
+
+    if(field==="qty") it.qty=Number(value||0);
+    else if(field==="year") it.year=value;
+    else if(field==="notes") it.notes=value;
+    else if(field==="kind"){
+      it.kind=value;
+      if(it.kind==="pkg" && !it.pkgKey) it.pkgKey=packages[0].key;
+      if(it.kind==="custom"){
+        it.customUSD = it.customUSD ?? 0;
+        it.customPoints = it.customPoints ?? 0;
+      }
+    }else if(field==="pkgKey") it.pkgKey=value;
+    else if(field==="customUSD") it.customUSD=Number(value||0);
+    else if(field==="customPoints") it.customPoints=Number(value||0);
+
+    persist();
+
+    const affectsCalc=["qty","year","kind","pkgKey","customUSD","customPoints"].includes(field);
+    if(affectsCalc || isChange) renderPlan();
+    renderSummary();
+    renderProjects();
+  }
+
+  function computeTotals(){
+    const s=getSettings();
+    const byYear={ "2026":{usd:0,pts:0}, "2027":{usd:0,pts:0}, "2028":{usd:0,pts:0} };
+    const byProject=new Map();
+    let totalUSD=0, totalPts=0;
+
+    state.items.forEach(it=>{
+      const c=computeItem(it,s);
+      totalUSD+=c.usd; totalPts+=c.pts;
+      const y=String(it.year||"2026");
+      byYear[y].usd+=c.usd; byYear[y].pts+=c.pts;
+
+      const pr=state.projects.find(p=>p.id===it.projectId);
+      const title=pr?.title ?? "Untitled project";
+      if(!byProject.has(it.projectId)) byProject.set(it.projectId,{title,usd:0,pts:0,items:0});
+      const acc=byProject.get(it.projectId);
+      acc.usd+=c.usd; acc.pts+=c.pts; acc.items+=1;
+    });
+
+    return {s,byYear,byProject,totalUSD,totalPts};
+  }
+
+  function renderSummary(){
+    const {s,byYear,byProject,totalUSD,totalPts}=computeTotals();
+    const remain=s.memberPoints-totalPts;
+    const eq=totalPts*s.pointValue;
+
+    $("kpiPoints").textContent=num(totalPts,2);
+    $("kpiUSD").textContent=money(totalUSD);
+    $("kpiRemain").textContent=num(remain,2);
+    $("kpiEq").textContent=money(eq);
+
+    let msg=`Using <b>${num(totalPts,2)}</b> points out of <b>${num(s.memberPoints,0)}</b>. `;
+    if(remain<0) msg += `<span class="bad"><b>Over by ${num(Math.abs(remain),2)} points</b></span> — reduce scope or assume co-financing.`;
+    else if(remain < s.memberPoints*0.15) msg += `<span class="warn"><b>Low remaining buffer</b></span> — keep margin for price variation.`;
+    else msg += `<span class="ok"><b>${num(remain,2)} points remaining</b></span>.`;
+    $("statusLine").innerHTML=msg;
+
+    const pct = s.memberPoints>0 ? Math.max(0, Math.min(100, (totalPts/s.memberPoints)*100)) : 0;
+    $("prog").style.width = pct + "%";
+    $("prog").style.background = remain<0 ? "rgba(251,113,133,.65)" : (pct>85 ? "rgba(251,191,36,.65)" : "rgba(110,168,255,.55)");
+
+    $("byYear").innerHTML = ["2026","2027","2028"].map(y=>`
+      <tr>
+        <td>${y}</td>
+        <td class="right mono">${money(byYear[y].usd)}</td>
+        <td class="right mono">${num(byYear[y].pts,2)}</td>
+      </tr>
+    `).join("");
+
+    const byP=$("byProject");
+    byP.innerHTML="";
+    const entries=Array.from(byProject.entries()).sort((a,b)=>b[1].pts-a[1].pts);
+    if(entries.length===0){
+      byP.innerHTML=`<div class="muted" style="font-size:12.5px">No items yet.</div>`;
+    }else{
+      entries.forEach(([pid,acc])=>{
+        const div=document.createElement("div");
+        div.className="card";
+        div.style.boxShadow="none";
+        div.style.marginBottom="10px";
+        div.innerHTML=`
+          <div class="hd">
+            <div class="title" style="gap:8px; align-items:center">
+              <span style="max-width:520px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">${escapeHtml(acc.title)}</span>
+              <span class="pill">${acc.items} items</span>
+            </div>
+            <div class="row">
+              <span class="pill"><span class="mono"><b>${money(acc.usd)}</b></span></span>
+              <span class="pill"><span class="mono"><b>${num(acc.pts,2)}</b> pts</span></span>
+              <button class="btn small" data-jump="${pid}">Open</button>
+            </div>
+          </div>
+        `;
+        div.querySelector("button").onclick=()=>setActiveProject(pid);
+        byP.appendChild(div);
+      });
+    }
+
+    const ap=activeProject();
+    $("activeProjectName").value = ap ? ap.title : "(none)";
+  }
+
+  function escapeHtml(str){
+    return String(str ?? "")
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
+
+  function seedExample(){
+    state.projects=[]; state.items=[];
+    const p1={id:uid(), title:"AI adoption for SMEs"};
+    const p2={id:uid(), title:"Productivity Masterplan"};
+    state.projects.push(p1,p2);
+    state.activeProjectId=p1.id;
+
+    state.items.push(
+      {id:uid(), projectId:p1.id, year:"2026", kind:"pkg", pkgKey:"pilot_sector", qty:1, notes:"Pilot design + mission", customUSD:0, customPoints:0},
+      {id:uid(), projectId:p1.id, year:"2027", kind:"pkg", pkgKey:"workshop", qty:1, notes:"Workshop for ~25–30 participants", customUSD:0, customPoints:0},
+      {id:uid(), projectId:p1.id, year:"2028", kind:"pkg", pkgKey:"sys_dev", qty:1, notes:"Basic system/tool/dashboard (MVP)", customUSD:0, customPoints:0},
+      {id:uid(), projectId:p2.id, year:"2026", kind:"pkg", pkgKey:"masterplan", qty:1, notes:"Policy framework + consultations", customUSD:0, customPoints:0}
+    );
+
+    persist();
+    renderAll();
+    toast("Seed example loaded.");
+  }
+
+  function clearAll(){
+    state.projects=[]; state.items=[]; state.activeProjectId=null;
+    persist(); renderAll(); toast("Cleared.");
+  }
+
+  function exportJSON(){
+    const payload={ version:"demo-v3", settings:getSettings(), packages, projects:state.projects, items:state.items };
+    downloadFile("spp_package_planner_demo_v3.json", JSON.stringify(payload,null,2), "application/json");
+    toast("Exported JSON.");
+  }
+
+  function exportCSV(){
+    const s=getSettings();
+    const lines=[];
+    lines.push(["Project","Year","Kind","PackageOrRule","Qty","RowUSD","RowPoints","Notes"].join(","));
+    state.items.forEach(it=>{
+      const pr=state.projects.find(p=>p.id===it.projectId);
+      const projectTitle=pr?.title ?? "Untitled project";
+      const c=computeItem(it,s);
+      const pkgLabel = it.kind==="pkg" ? (pkgByKey(it.pkgKey)?.label ?? it.pkgKey ?? "")
+        : it.kind==="out_participant" ? "Participant sent (1 pt/unit)"
+        : it.kind==="out_delegation" ? "Delegation hosted (1 pt/unit)"
+        : "Custom";
+      lines.push([
+        csv(projectTitle), csv(it.year), csv(it.kind), csv(pkgLabel), csv(it.qty),
+        csv(Math.round(c.usd)), csv(c.pts), csv(it.notes)
+      ].join(","));
+    });
+    downloadFile("spp_package_planner_demo_v3.csv", lines.join("\n"), "text/csv");
+    toast("Exported CSV.");
+  }
+
+  function csv(v){
+    const s=String(v ?? "");
+    if(/[",\n]/.test(s)) return '"' + s.replaceAll('"','""') + '"';
+    return s;
+  }
+  function downloadFile(filename, content, mime){
+    const blob=new Blob([content],{type:mime});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url; a.download=filename;
+    document.body.appendChild(a);
+    a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),500);
+  }
+
+  function renderAll(){
+    renderTabs();
+    renderMenu();
+    renderProjects();
+    renderPlan();
+    renderSummary();
+  }
+
+  // wiring
+  $("btnAddProject").onclick=()=>addProject($("newProjectTitle").value);
+  $("newProjectTitle").addEventListener("keydown",(e)=>{ if(e.key==="Enter") addProject($("newProjectTitle").value); });
+  $("editProjectTitle").addEventListener("input",(e)=>onEditProjectTitle(e.target.value));
+
+  $("btnAddBlank").onclick=()=>{
+    if(!ensureProjectSelected()) return;
+    const s=getSettings();
+    addItem({kind:"custom", year:s.defaultYear, qty:s.defaultQty, customUSD:0, customPoints:0});
+    toast("Blank custom item added.");
+  };
+
+  $("btnSeed").onclick=seedExample;
+  $("btnClear").onclick=clearAll;
+  $("defaultYear").addEventListener("change", ()=>persist());
+  $("defaultQty").addEventListener("input", ()=>persist());
+
+  $("memberPoints").addEventListener("input", ()=>{ persist(); renderProjects(); renderSummary(); });
+  $("pointValue").addEventListener("input", ()=>{ persist(); renderProjects(); renderPlan(); renderSummary(); });
+
+  $("btnExport").onclick=exportJSON;
+  $("btnCSV").onclick=exportCSV;
+
+  restore();
+  renderAll();
+})();
+</script>
+</body>
+</html>
